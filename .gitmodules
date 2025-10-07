@@ -1,0 +1,3 @@
+[submodule "llm-d-inference-sim"]
+	path = llm-d-inference-sim
+	url = https://github.com/llm-d/llm-d-inference-sim.git
