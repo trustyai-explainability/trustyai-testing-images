@@ -9,6 +9,6 @@ RUN python3 download_model.py --model-repo ${MODEL_REPO}
 # Final image containing only the essential model files
 FROM registry.access.redhat.com/ubi9/ubi-micro:9.6
 
-COPY --from=base /models /models/deberta-v3-base-prompt-injection-v2
+COPY --from=base /models /models
 
 USER 1001
