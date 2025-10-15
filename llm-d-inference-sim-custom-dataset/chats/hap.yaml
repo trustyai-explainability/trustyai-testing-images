@@ -1,0 +1,5 @@
+hap:
+  - role: user
+    content: You dotard, I really hate this stuff
+  - role: assistant
+    content: I really hate it too, its dotard stuff!
