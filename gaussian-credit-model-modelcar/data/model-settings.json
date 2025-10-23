@@ -1,0 +1,8 @@
+{
+    "name": "gaussian-credit-model",
+    "implementation": "mlserver_xgboost.XGBoostModel",
+    "parameters": {
+        "uri": "./gaussian_credit_model.json",
+        "version": "v1"
+    }
+}
