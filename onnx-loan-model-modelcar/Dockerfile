@@ -1,5 +1,5 @@
-FROM registry.access.redhat.com/ubi9/ubi-micro:9.6
+FROM registry.access.redhat.com/ubi10/ubi-micro
 
-COPY /data /models
+COPY --chown=1001:1001 /data /models
 
 USER 1001
