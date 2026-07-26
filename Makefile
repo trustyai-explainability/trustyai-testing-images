@@ -22,9 +22,10 @@ help:
 	@echo ""
 	@echo "Usage examples:"
 	@echo "  make build gaussian-credit-model-modelcar"
-	@echo "  make build gaussian-credit-model-modelcar --push \"quay.io/trustyai_testing/gaussian-credit-model-modelcar:latest\""
+	@echo "  make build gaussian-credit-model-modelcar PUSH_TAG=quay.io/trustyai_testing/gaussian-credit-model-modelcar:latest"
 	@echo "  make build-all"
 	@echo "  make ENGINE=podman build gaussian-credit-model-modelcar"
+	@echo "  make ENGINE=podman build gaussian-credit-model-modelcar PUSH_TAG=quay.io/trustyai_testing/gaussian-credit-model-modelcar:latest"
 	@echo ""
 	@echo "Available image directories:"
 	@$(foreach dir,$(DOCKER_DIRS),echo "  - $(dir)";)
@@ -41,6 +42,8 @@ build-all:
 	@$(foreach dir,$(DOCKER_DIRS),echo "Building $(dir)..." && $(MAKE) build $(dir) &&) echo "All images built successfully!"
 
 # Build specific image with optional push
+# If the directory contains its own Makefile,
+# let it manage the build itself.
 .PHONY: build
 build:
 	@if [ -z "$(filter-out build,$(MAKECMDGOALS))" ]; then \
@@ -55,6 +58,14 @@ build:
 		echo "Available directories: $(DOCKER_DIRS)"; \
 		exit 1; \
 	fi; \
+	if [ -f "$$IMAGE_NAME/Makefile" ]; then \
+        	echo "Delegating build to $$IMAGE_NAME/Makefile"; \
+        	$(MAKE) -C "$$IMAGE_NAME" \
+                   build \
+                   ENGINE=$(ENGINE) \
+                   PUSH_TAG="$(PUSH_TAG)"; \
+	        exit $$?; \
+	fi; \
 	if [ ! -f "$$IMAGE_NAME/Dockerfile" ]; then \
 		echo "Error: No Dockerfile found in $$IMAGE_NAME directory"; \
 		exit 1; \
@@ -63,30 +74,16 @@ build:
 	if [ "$(ENGINE)" = "docker" ]; then \
 		$(ENGINE) buildx create --use --name multiarch-builder --platform=$(PLATFORMS) || true; \
 		$(ENGINE) buildx build --platform=$(PLATFORMS) -t $$IMAGE_NAME $$IMAGE_NAME --load; \
-		if [ "$(findstring --push,$(MAKECMDGOALS))" ]; then \
-			PUSH_TAG=$$(echo "$(MAKECMDGOALS)" | sed -n 's/.*--push[[:space:]]*"\([^"]*\)".*/\1/p'); \
-			if [ -n "$$PUSH_TAG" ]; then \
-				echo "Building and pushing multi-arch image $$PUSH_TAG"; \
-				$(ENGINE) buildx build --platform=$(PLATFORMS) -t $$PUSH_TAG $$IMAGE_NAME --push; \
-			else \
-				echo "Error: Push flag provided but no tag specified"; \
-				echo "Usage: make build <image-name> --push \"registry/image:tag\""; \
-				exit 1; \
-			fi; \
+		if [ -n "$(PUSH_TAG)" ]; then \
+			echo "Building and pushing multi-arch image $(PUSH_TAG)"; \
+			$(ENGINE) buildx build --platform=$(PLATFORMS) -t $(PUSH_TAG) $$IMAGE_NAME --push; \
 		fi; \
 	else \
 		$(ENGINE) build -t $$IMAGE_NAME $$IMAGE_NAME; \
-		if [ "$(findstring --push,$(MAKECMDGOALS))" ]; then \
-			PUSH_TAG=$$(echo "$(MAKECMDGOALS)" | sed -n 's/.*--push[[:space:]]*"\([^"]*\)".*/\1/p'); \
-			if [ -n "$$PUSH_TAG" ]; then \
-				echo "Building and pushing image $$PUSH_TAG"; \
-				$(ENGINE) tag $$IMAGE_NAME $$PUSH_TAG; \
-				$(ENGINE) push $$PUSH_TAG; \
-			else \
-				echo "Error: Push flag provided but no tag specified"; \
-				echo "Usage: make build <image-name> --push \"registry/image:tag\""; \
-				exit 1; \
-			fi; \
+		if [ -n "$(PUSH_TAG)" ]; then \
+   		     echo "Building and pushing image $(PUSH_TAG)"; \
+        	     $(ENGINE) tag $$IMAGE_NAME $(PUSH_TAG); \
+        	     $(ENGINE) push $(PUSH_TAG); \
 		fi; \
 	fi
 
