@@ -35,6 +35,10 @@ endif
 .PHONY: binary
 binary:
 	@echo "Building MinIO client s390x binary..."
+	@test -x build-s390x.sh || { \
+		echo "Error: build-s390x.sh is missing or not executable"; \
+		exit 1; \
+	}
 	./build-s390x.sh
 
 #
@@ -83,10 +87,15 @@ endif
 	@echo "Adding ppc64le image"
 	$(ENGINE) manifest add $(PUSH_TAG) $(PPC64LE_IMAGE)
 
-	@echo "Adding s390x image"
-	$(ENGINE) manifest add $(PUSH_TAG) docker://$(PUSH_TAG)-s390x
-
-#
+	@echo "Resolving s390x image digest"
+	@S390X_REPO=$$(echo "$(PUSH_TAG)-s390x" | sed 's/:[^:]*$$//'); \
+	S390X_DIGEST=$$(skopeo inspect --format '{{.Digest}}' docker://$(PUSH_TAG)-s390x); \
+	if [ -z "$$S390X_DIGEST" ] || [ "$$S390X_DIGEST" = "null" ]; then \
+    		echo "Failed to resolve remote manifest digest"; \
+   		exit 1; \
+	fi; \
+	echo "Adding s390x image ($$S390X_DIGEST)"; \
+	$(ENGINE) manifest add $(PUSH_TAG) docker://$$S390X_REPO@$$S390X_DIGEST
 # Push manifest
 #
 .PHONY: manifest-push

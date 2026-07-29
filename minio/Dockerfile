@@ -1,6 +1,9 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal
 
-LABEL maintainer="TrustAI Testing"
+LABEL \
+    org.opencontainers.image.title="MinIO" \
+    org.opencontainers.image.source="https://github.com/minio/minio" \
+    org.opencontainers.image.vendor="TrustyAI"
 
 COPY --chmod=755 minio /usr/bin/minio
 
