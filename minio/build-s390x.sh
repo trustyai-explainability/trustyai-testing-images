@@ -8,7 +8,7 @@ WORKDIR=$(mktemp -d)
 trap "rm -rf ${WORKDIR}" EXIT
 
 git clone \
-  --branch RELEASE.2024-10-29T16-01-48Z \
+  --branch RELEASE.2025-09-07T16-13-09Z \
   --depth 1 \
   https://github.com/minio/minio.git "${WORKDIR}"
 
