@@ -1,0 +1,17 @@
+name: "demo-loan-nn-onnx-alpha"
+backend: "onnxmlir"
+max_batch_size: 0
+input [
+  {
+    name: "customer_data_input"
+    dims: [-1, 11]
+    data_type: TYPE_FP64
+  }
+]
+output [
+  {
+    name: "output_0"
+    data_type: TYPE_INT64
+    dims: [ -1 ]
+  }
+]
